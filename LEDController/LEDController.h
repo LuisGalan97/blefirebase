@@ -11,7 +11,7 @@ class LEDController {
     static const int ledChannel_3 = 2;
     static const int freq = 5000;
     static const int resolution = 8;//256 resolution 8bits
-    static const int intensity = 3; //0-255
+    static const int intensity = 1; //0-255
     static bool statusLED_1;
     static bool statusLED_2;
     static bool statusLED_3;
