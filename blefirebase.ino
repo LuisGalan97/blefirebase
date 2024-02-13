@@ -9,10 +9,12 @@
 
 Bluetooth* ble;
 FirebaseDB* firebaseDB;
+int iteration;
 
 void setup() {
   Serial.begin(115200);
   delay(5000);
+  iteration = 0;
   ble = new Bluetooth(SERVICE_UUID, CHAR_UUID);
   firebaseDB = new FirebaseDB(WIFI_SSID, WIFI_PASSWORD,
                               FIREBASE_HOST, FIREBASE_AUTH,
@@ -20,6 +22,11 @@ void setup() {
 }
 
 void loop() {
+  iteration++;
+  Serial.println("---------------" + String(iteration) +
+                 " -> Acquiring BLE data----------------");
   String data = ble->getData();
+  Serial.println("---------------" + String(iteration) +
+                 " -> Sending to Firebase---------------");
   firebaseDB->sendData(data);
 }
