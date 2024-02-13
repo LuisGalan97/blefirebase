@@ -20,7 +20,7 @@ void FirebaseDB::sendData(String data){
   this->attemps = 0;
   this->customDelay();
   while (!this->setData(data)) {
-    if (this->attemps < 50) {
+    if (this->attemps < 10) {
       this->attemps += 1;
       if (this->attemps == 2) {
         Serial.print("Firebase sendData attempt: ");
@@ -112,7 +112,7 @@ bool FirebaseDB::connectWiFi() {
     WiFi.begin(this->wiFiSSID, this->wiFiPass);
     int timeout = 0;
     while(WiFi.status() != WL_CONNECTED &&
-      timeout < 300){
+      timeout < 150){
       LEDController::alternateLED_3();
       delay(100);
       timeout += 1;
@@ -142,7 +142,7 @@ bool FirebaseDB::disconnectWiFi() {
     WiFi.disconnect();
     int timeout = 0;
     while(WiFi.status() == WL_CONNECTED &&
-      timeout < 300){
+      timeout < 150){
       LEDController::alternateLED_3();
       delay(100);
       timeout += 1;

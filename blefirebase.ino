@@ -23,5 +23,4 @@ void setup() {
 void loop() {
   String data = ble->getData();
   firebaseDB->sendData(data);
-
 }

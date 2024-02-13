@@ -33,7 +33,7 @@ String Bluetooth::getData() {
   this->attemps = 0;
   this->customDelay();
   while (!this->setData()) {
-    if (this->attemps < 50) {
+    if (this->attemps < 10) {
       this->attemps += 1;
       if (this->attemps == 2) {
         Serial.print("Bluetooth getData attempt: ");
