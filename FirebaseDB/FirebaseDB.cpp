@@ -126,7 +126,6 @@ bool FirebaseDB::connectWiFi() {
     } else {
       Serial.print("Unable to connect network ");
       Serial.println((String)this->wiFiSSID + "...");
-      WiFi.disconnect();
       return false;
     }
   } else {
