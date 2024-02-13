@@ -10,6 +10,9 @@
 #ifndef MyClientCallbacks_h
 #include "MyClientCallbacks.h"
 #endif
+#ifndef LEDController_h
+#include "../LEDController/LEDController.h"
+#endif
 
 class Bluetooth {
   private:
@@ -22,7 +25,6 @@ class Bluetooth {
     MyClientCallbacks* clientCallback;
     BLERemoteService* pRemoteServ;
     BLERemoteCharacteristic* pRemoteChar;
-    int timedelay;
     bool setData();
     bool scan();
     bool connect();
@@ -32,6 +34,9 @@ class Bluetooth {
     bool stopNotify();
     bool disconnect();
     void clearInstances();
+    int timedelay;
+    void customDelay();
+    int attemps;
   public:
     Bluetooth(const char* serviceUUID, const char* charUUID);
     String getData();

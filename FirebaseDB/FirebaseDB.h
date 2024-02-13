@@ -7,6 +7,9 @@
 #ifndef FirebaseESP32_h
 #include "FirebaseESP32.h"
 #endif
+#ifndef LEDController_h
+#include "../LEDController/LEDController.h"
+#endif
 
 class FirebaseDB {
   private:
@@ -19,18 +22,20 @@ class FirebaseDB {
     bool boolData;
     FirebaseData firebaseData;
     bool setData(String data);
+    bool scanWiFi();
     bool connectWiFi();
     bool disconnectWiFi();
     bool connectFirebase();
     bool readBoolData(String target);
     bool sendStringData(String target, String data);
     int timedelay;
+    void customDelay();
+    int attemps;
   public:
     FirebaseDB(const char* wiFiSSID, const char* wiFiPass,
                const char* fireHost, const char* fireAuth,
                String clusterID, String sensorID);
     void sendData(String data);
 };
-
 
 #endif

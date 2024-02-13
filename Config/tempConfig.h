@@ -13,7 +13,7 @@
 //#endif
 
 /*Este archivo corresponde a un ejemplo plantilla del archivo de configuracion
-original que debe estar presente en el proyecto, con los datos referentes de 
+original que debe estar presente en el proyecto, con los datos referentes de
 las credenciales WiFi, los valores de autenticacion de la base de datos, y
 los identificadores del cluster y el sensor en cuestion. Siendo este archivo
 el correspondiente a Config/Config.h

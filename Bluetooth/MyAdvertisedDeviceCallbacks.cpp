@@ -9,6 +9,7 @@ MyAdvertisedDeviceCallbacks::MyAdvertisedDeviceCallbacks(
 
 void MyAdvertisedDeviceCallbacks::onResult(
   BLEAdvertisedDevice advertisedDevice) {
+  LEDController::alternateLED_3();
   //Serial.print("BLE Advertised Device found: ");
   //Serial.println(advertisedDevice.toString().c_str());
   if (advertisedDevice.haveServiceUUID() &&

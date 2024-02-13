@@ -1,7 +1,7 @@
 #include "FirebaseDB.h"
 
 FirebaseDB::FirebaseDB(const char* wiFiSSID, const char* wiFiPass,
-  const char* fireHost, const char* fireAuth, 
+  const char* fireHost, const char* fireAuth,
   String clusterID, String sensorID) {
   Serial.println("Starting Arduino Firebase Application...");
   this->wiFiSSID = wiFiSSID;
@@ -11,50 +11,98 @@ FirebaseDB::FirebaseDB(const char* wiFiSSID, const char* wiFiPass,
   this->node = clusterID + "/" + sensorID + "/";
   this->firebaseConn = false;
   this->boolData = false;
-  this->timedelay = 250;
+  this->timedelay = 200;
+  this->attemps = 0;
   Firebase.reconnectWiFi(false);
 }
 
 void FirebaseDB::sendData(String data){
-  delay(this->timedelay);
+  this->attemps = 0;
+  this->customDelay();
   while (!this->setData(data)) {
-    delay(this->timedelay);
+    if (this->attemps < 50) {
+      this->attemps += 1;
+      if (this->attemps == 2) {
+        Serial.print("Firebase sendData attempt: ");
+        Serial.println(this->attemps);
+      }
+      this->customDelay();
+    } else {
+      Serial.println("Attemps exceeded, rebooting...");
+      this->customDelay();
+      ESP.restart();
+    }
   }
 }
 
 bool FirebaseDB::setData(String data) {
+  LEDController::setLED_3(true);
+  if (!this->scanWiFi()) {
+    this->attemps = 0;
+    this->customDelay();
+    return false;
+  }
+  this->customDelay();
   if (!this->connectWiFi()) {
-    delay(this->timedelay);
+    this->customDelay();
     return false;
   }
-  delay(this->timedelay);
+  this->customDelay();
   if (!this->connectFirebase()) {
-    delay(this->timedelay);
+    this->customDelay();
     return false;
   }
-  delay(this->timedelay);
+  this->customDelay();
+  LEDController::setLED_3(true);
   if (!this->readBoolData(this->node + "connection")) {
-    delay(this->timedelay);
+    this->customDelay();
     return false;
   } else {
     if (!this->boolData) {
       Serial.println("Writing inactive from firebase.");
-      delay(this->timedelay);
+      this->attemps = 0;
+      this->customDelay();
       return false;
     }
   }
-  delay(this->timedelay);
+  this->customDelay();
+  LEDController::setLED_3(true);
   if (!this->sendStringData(this->node + "data", data)) {
-    delay(this->timedelay);
+    this->customDelay();
     return false;
   }
-  delay(this->timedelay);
+  this->customDelay();
   if (!this->disconnectWiFi()) {
-    delay(this->timedelay);
+    this->customDelay();
     return false;
   }
-  delay(this->timedelay);
+  this->customDelay();
   return true;
+}
+
+bool FirebaseDB::scanWiFi(){
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("Scannning available networks");
+    int value = WiFi.scanNetworks();
+    for (int i = 0; i < value; i++) {
+      if ((i+1)%4 == 0) {
+        LEDController::alternateLED_3();
+      }
+      delay(50);
+      if ((String)this->wiFiSSID == WiFi.SSID(i)) {
+        Serial.print("Found network ");
+        Serial.println((String)this->wiFiSSID + "!");
+        return true;
+      }
+    }
+    Serial.print("Not found network ");
+    Serial.println((String)this->wiFiSSID + "...");
+    return false;
+  } else {
+    Serial.println("Unable to scan, WiFi connection already exist...");
+    LEDController::setLED_2(true);
+    return true;
+  }
 }
 
 bool FirebaseDB::connectWiFi() {
@@ -64,22 +112,26 @@ bool FirebaseDB::connectWiFi() {
     WiFi.begin(this->wiFiSSID, this->wiFiPass);
     int timeout = 0;
     while(WiFi.status() != WL_CONNECTED &&
-      timeout < 3000){
-      delay(10);
+      timeout < 300){
+      LEDController::alternateLED_3();
+      delay(100);
       timeout += 1;
     }
     if (WiFi.status() == WL_CONNECTED) {
       Serial.print("Connected to network ");
       Serial.println((String)this->wiFiSSID + "!");
+      LEDController::setLED_2(true);
       this->firebaseConn = false;
       return true;
     } else {
       Serial.print("Unable to connect network ");
       Serial.println((String)this->wiFiSSID + "...");
+      WiFi.disconnect();
       return false;
     }
   } else {
     Serial.println("WiFi connection already exist...");
+    LEDController::setLED_2(true);
     return true;
   }
 }
@@ -90,12 +142,14 @@ bool FirebaseDB::disconnectWiFi() {
     WiFi.disconnect();
     int timeout = 0;
     while(WiFi.status() == WL_CONNECTED &&
-      timeout < 3000){
-      delay(10);
+      timeout < 300){
+      LEDController::alternateLED_3();
+      delay(100);
       timeout += 1;
     }
     if (WiFi.status() != WL_CONNECTED) {
       Serial.println("WiFi disconnected!");
+      LEDController::setLED_2(false);
       return true;
     } else {
       Serial.println("Unable to disconnect WiFi...");
@@ -103,6 +157,7 @@ bool FirebaseDB::disconnectWiFi() {
     }
   } else {
     Serial.println("WiFi connection doesn't exist...");
+    LEDController::setLED_2(false);
     return true;
   }
 }
@@ -119,6 +174,7 @@ bool FirebaseDB::connectFirebase() {
     }
   } else {
     Serial.println("WiFi connection doesn't exist...");
+    LEDController::setLED_2(false);
     return false;
   }
 }
@@ -146,6 +202,7 @@ bool FirebaseDB::readBoolData(String target) {
     }
   } else {
     Serial.println("WiFi connection doesn't exist...");
+    LEDController::setLED_2(false);
     return false;
   }
 }
@@ -169,6 +226,12 @@ bool FirebaseDB::sendStringData(String target, String data) {
     }
   } else {
     Serial.println("WiFi connection doesn't exist...");
+    LEDController::setLED_2(false);
     return false;
   }
+}
+
+void FirebaseDB::customDelay() {
+  LEDController::alternateLED_3();
+  delay(this->timedelay);
 }

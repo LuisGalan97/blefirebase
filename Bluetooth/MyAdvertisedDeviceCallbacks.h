@@ -4,6 +4,9 @@
 #ifndef BLEDevice_h
 #include "BLEDevice.h"
 #endif
+#ifndef LEDController_h
+#include "../LEDController/LEDController.h"
+#endif
 
 class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
   private:

@@ -4,6 +4,8 @@
 #include "Bluetooth/MyClientCallbacks.cpp"
 #include "FirebaseDB/FirebaseDB.h"
 #include "FirebaseDB/FirebaseDB.cpp"
+#include "LEDController/LEDController.h"
+#include "LEDController/LEDController.cpp"
 #include "Config/Config.h"
 
 Bluetooth* ble;
@@ -21,4 +23,5 @@ void setup() {
 void loop() {
   String data = ble->getData();
   firebaseDB->sendData(data);
+
 }

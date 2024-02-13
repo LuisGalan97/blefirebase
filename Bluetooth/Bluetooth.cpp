@@ -25,13 +25,26 @@ Bluetooth::Bluetooth(const char* serviceUUID, const char* charUUID) {
   this->pBLEScan->setInterval(1349); //Intervalo de escaneo
   this->pBLEScan->setWindow(449);
   this->pBLEScan->setActiveScan(true); //Necesario para un escaneo profundo
-  this->timedelay = 250;
+  this->timedelay = 200;
+  this->attemps = 0;
 }
 
 String Bluetooth::getData() {
-  delay(this->timedelay);
+  this->attemps = 0;
+  this->customDelay();
   while (!this->setData()) {
-    delay(this->timedelay);
+    if (this->attemps < 50) {
+      this->attemps += 1;
+      if (this->attemps == 2) {
+        Serial.print("Bluetooth getData attempt: ");
+        Serial.println(this->attemps);
+      }
+      this->customDelay();
+    } else {
+      Serial.println("Attemps exceeded, rebooting ESP32.");
+      this->customDelay();
+      ESP.restart();
+    }
   }
   Serial.print("Adquired BLE Data ");
   Serial.println(Bluetooth::data + "!");
@@ -40,27 +53,28 @@ String Bluetooth::getData() {
 
 bool Bluetooth::setData() {
   if (!this->scan()) {
-    delay(this->timedelay);
+    this->customDelay();
     return false;
   }
-  delay(this->timedelay);
+  this->customDelay();
+  LEDController::setLED_3(true);
   if (!this->connect()) {
-    delay(this->timedelay);
+    this->customDelay();
     return false;
   }
-  delay(this->timedelay);
+  this->customDelay();
   if (!this->findService()) {
-    delay(this->timedelay);
+    this->customDelay();
     return false;
   }
-  delay(this->timedelay);
+  this->customDelay();
   if (!this->findCharacteristic()) {
-    delay(this->timedelay);
+    this->customDelay();
     return false;
   }
-  delay(this->timedelay);
+  this->customDelay();
   if (!this->startNotify()) {
-    delay(this->timedelay);
+    this->customDelay();
     return false;
   }
   while (!Bluetooth::ready &&
@@ -68,9 +82,9 @@ bool Bluetooth::setData() {
     delay(10);
   }
   this->stopNotify();
-  delay(this->timedelay);
+  this->customDelay();
   this->disconnect();
-  delay(this->timedelay);
+  this->customDelay();
   if (!Bluetooth::ready) {
     return false;
   } else {
@@ -236,7 +250,7 @@ bool Bluetooth::disconnect() {
       Serial.println(this->targetDevice->getAddress().toString().c_str());
       this->pClient->disconnect();
       while(this->clientCallback->getConnected()){
-        delay(10);
+        delay(100);
       }
       return true;
     } else {
@@ -260,6 +274,11 @@ void Bluetooth::clearInstances() {
   if (this->pRemoteChar !=nullptr) {
     this->pRemoteChar = nullptr;
   }
+  this->customDelay();
+}
+
+void Bluetooth::customDelay(){
+  LEDController::alternateLED_3();
   delay(this->timedelay);
 }
 
@@ -270,7 +289,8 @@ static void notifyCallback(
   bool isNotify) {
   if (isNotify) {
     if (!Bluetooth::ready) {
-      if (Bluetooth::contData < 80) {
+      LEDController::alternateLED_3();
+      if (Bluetooth::contData < Bluetooth::sizeCont) {
         for (size_t i = 0; i < length; i++) {
           if (Bluetooth::contData == 0) {
             Bluetooth::arrayData[i] = pData[i];
