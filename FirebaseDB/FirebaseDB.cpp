@@ -20,9 +20,9 @@ void FirebaseDB::sendData(String data){
   this->attemps = 0;
   this->customDelay();
   while (!this->setData(data)) {
-    if (this->attemps < 10) {
+    if (this->attemps < 5) {
       this->attemps += 1;
-      if (this->attemps == 2) {
+      if (this->attemps > 1) {
         Serial.print("Firebase sendData attempt: ");
         Serial.println(this->attemps);
       }

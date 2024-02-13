@@ -22,7 +22,7 @@ void setup() {
 }
 
 void loop() {
-  iteration++;
+  iteration = (iteration < 1000) ? iteration+1 : 1;
   Serial.println("---------------" + String(iteration) +
                  " -> Acquiring BLE data----------------");
   String data = ble->getData();
