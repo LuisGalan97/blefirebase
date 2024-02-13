@@ -22,6 +22,7 @@ class Bluetooth {
     MyClientCallbacks* clientCallback;
     BLERemoteService* pRemoteServ;
     BLERemoteCharacteristic* pRemoteChar;
+    int timedelay;
     bool setData();
     bool scan();
     bool connect();
@@ -32,7 +33,7 @@ class Bluetooth {
     bool disconnect();
     void clearInstances();
   public:
-    Bluetooth(BLEUUID serviceUUID, BLEUUID charUUID, int sizeCont);
+    Bluetooth(const char* serviceUUID, const char* charUUID);
     String getData();
     static int sizeCont;
     static int contData;

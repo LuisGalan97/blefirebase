@@ -6,10 +6,10 @@ String Bluetooth::data = "";
 bool Bluetooth::ready = false;
 double Bluetooth::arrayData[20];
 
-Bluetooth::Bluetooth(BLEUUID serviceUUID, BLEUUID charUUID, int sizeCont) {
-  this->serviceUUID = serviceUUID;
-  this->charUUID = charUUID;
-  Bluetooth::sizeCont = sizeCont;
+Bluetooth::Bluetooth(const char* serviceUUID, const char* charUUID) {
+  this->serviceUUID = BLEUUID(serviceUUID);
+  this->charUUID = BLEUUID(charUUID);
+  Bluetooth::sizeCont = 20;
   Serial.println("Starting Arduino BLE Client Application...");
   BLEDevice::init("");
   this->pBLEScan = BLEDevice::getScan();
@@ -25,38 +25,42 @@ Bluetooth::Bluetooth(BLEUUID serviceUUID, BLEUUID charUUID, int sizeCont) {
   this->pBLEScan->setInterval(1349); //Intervalo de escaneo
   this->pBLEScan->setWindow(449);
   this->pBLEScan->setActiveScan(true); //Necesario para un escaneo profundo
+  this->timedelay = 250;
 }
 
 String Bluetooth::getData() {
+  delay(this->timedelay);
   while (!this->setData()) {
-    delay(500);
+    delay(this->timedelay);
   }
+  Serial.print("Adquired BLE Data ");
+  Serial.println(Bluetooth::data + "!");
   return Bluetooth::data;
 }
 
 bool Bluetooth::setData() {
   if (!this->scan()) {
-    delay(500);
+    delay(this->timedelay);
     return false;
   }
-  delay(500);
+  delay(this->timedelay);
   if (!this->connect()) {
-    delay(500);
+    delay(this->timedelay);
     return false;
   }
-  delay(500);
+  delay(this->timedelay);
   if (!this->findService()) {
-    delay(500);
+    delay(this->timedelay);
     return false;
   }
-  delay(500);
+  delay(this->timedelay);
   if (!this->findCharacteristic()) {
-    delay(500);
+    delay(this->timedelay);
     return false;
   }
-  delay(500);
+  delay(this->timedelay);
   if (!this->startNotify()) {
-    delay(500);
+    delay(this->timedelay);
     return false;
   }
   while (!Bluetooth::ready &&
@@ -64,9 +68,9 @@ bool Bluetooth::setData() {
     delay(10);
   }
   this->stopNotify();
-  delay(500);
+  delay(this->timedelay);
   this->disconnect();
-  delay(500);
+  delay(this->timedelay);
   if (!Bluetooth::ready) {
     return false;
   } else {
@@ -108,11 +112,11 @@ bool Bluetooth::connect() {
         }
       } else {
         Serial.println("Client already exist...");
-        return false;
+        return true;
       }
     } else {
       Serial.println("Already connected...");
-      return false;
+      return true;
     }
   } else {
     Serial.println("Target device doesn't exist...");
@@ -136,7 +140,7 @@ bool Bluetooth::findService() {
         }
       } else {
         Serial.println("Service already exist...");
-        return false;
+        return true;
       }
     } else {
       Serial.println("Not connected to device...");
@@ -165,7 +169,7 @@ bool Bluetooth::findCharacteristic() {
         }
       } else {
          Serial.println("Characteristic already exist...");
-         return false;
+         return true;
       }
     } else {
       Serial.println("Not connected to device...");
@@ -237,7 +241,7 @@ bool Bluetooth::disconnect() {
       return true;
     } else {
       Serial.println("Already disconnected...");
-      return false;
+      return true;
     }
   } else {
     Serial.println("Target device doesn't exist, please find it...");
@@ -256,7 +260,7 @@ void Bluetooth::clearInstances() {
   if (this->pRemoteChar !=nullptr) {
     this->pRemoteChar = nullptr;
   }
-  delay(500);
+  delay(this->timedelay);
 }
 
 static void notifyCallback(
@@ -287,7 +291,7 @@ static void notifyCallback(
             Bluetooth::data += tempData;
           }
         }
-        Serial.println("Completando adquisicion de datos...");
+        Serial.println("Data acquisition completed!");
         Bluetooth::ready = true;
       }
     }
